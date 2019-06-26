@@ -135,7 +135,7 @@ def epoch_train(model, optimizer, batch_size, sql_data, table_data):
 def predict_test(model, batch_size, sql_data, table_data, output_path):
     model.eval()
     perm = list(range(len(sql_data)))
-    fw = open(output_path,'w')
+    fw = open(output_path,'w',encoding='utf-8')
     for st in tqdm(range(len(sql_data)//batch_size+1)):
         ed = (st+1)*batch_size if (st+1)*batch_size < len(perm) else len(perm)
         st = st * batch_size
@@ -143,7 +143,7 @@ def predict_test(model, batch_size, sql_data, table_data, output_path):
         score = model.forward(q_seq, col_seq, col_num)
         sql_preds = model.gen_query(score, q_seq, col_seq, raw_q_seq)
         for sql_pred in sql_preds:
-            fw.writelines(json.dumps(sql_pred,ensure_ascii=False).encode('utf-8')+'\n')
+            fw.writelines(json.dumps(sql_pred,ensure_ascii=False,default=default)+'\n')
     fw.close()
 
 def epoch_acc(model, batch_size, sql_data, table_data, db_path):
@@ -203,3 +203,8 @@ def load_word_emb(file_name):
     #         if info[0].lower() not in ret:
     #             ret[info[0]] = np.array([float(x) for x in info[1:]])
     return ret
+
+def default(obj):
+    if isinstance(obj, np.int64): return int(obj)  
+    raise TypeError
+
